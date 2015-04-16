@@ -203,8 +203,10 @@
        withDuration:(CFTimeInterval)duration
 {
     [self.layer removeAnimationForKey:@"indeterminateAnimation"];
+
+    CAAnimation* currentProgressAnimation = [self.circularProgressLayer animationForKey:@"progress"];
     [self.circularProgressLayer removeAnimationForKey:@"progress"];
-    
+
     CGFloat pinnedProgress = MIN(MAX(progress, 0.0f), 1.0f);
     if (animated) {
         CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"progress"];
@@ -217,6 +219,7 @@
         animation.delegate = self;
         [self.circularProgressLayer addAnimation:animation forKey:@"progress"];
     } else {
+        [currentProgressAnimation setValue: @YES forKey: @"da_ignoreAnimationProgress"];
         [self.circularProgressLayer setNeedsDisplay];
         self.circularProgressLayer.progress = pinnedProgress;
     }
@@ -224,10 +227,10 @@
 
 - (void)animationDidStop:(CAAnimation *)animation finished:(BOOL)flag
 {
-   if ([self.circularProgressLayer animationForKey: @"progress"] == animation) {
-      NSNumber *pinnedProgressNumber = [animation valueForKey:@"toValue"];
-      self.circularProgressLayer.progress = [pinnedProgressNumber floatValue];
-   }
+    if (![[animation valueForKey: @"da_ignoreAnimationProgress"] boolValue] ) {
+        NSNumber *pinnedProgressNumber = [animation valueForKey:@"toValue"];
+        self.circularProgressLayer.progress = [pinnedProgressNumber floatValue];
+    }
 }
 
 #pragma mark - UIAppearance methods
